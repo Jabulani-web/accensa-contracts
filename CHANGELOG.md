@@ -888,6 +888,12 @@ proof)` for randomness-verification flows, and its cost is pinned by a
   37,376 → 56,320 bytes; `receipt_anchor.wasm` 24,576 → 33,792 bytes on the
   current toolchain).
 
+- **CHANGELOG carried a second `## [Unreleased]` section.** The file ended with
+  a trailing duplicate heading and an empty `- Fixed issues` placeholder placed
+  *after* the version-link block, so new entries could land in either of two
+  Unreleased sections depending on where the writer looked. The changelog now
+  has exactly one Unreleased section, at the top, as Keep a Changelog requires.
+
 ## [0.3.0] — 2026-08-26
 
 ### ⚠️ Breaking
@@ -1080,6 +1086,3 @@ the transactions that created them are recorded in
 [0.3.0]: https://github.com/accensa/accensa-contracts/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/accensa/accensa-contracts/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/accensa/accensa-contracts/releases/tag/v0.1.0
-
-## [Unreleased]
-- Fixed issues
