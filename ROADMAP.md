@@ -7,3 +7,7 @@
   - 1:1 mint/burn of stACC against locked underlying tokens
   - Exchange rate progression and lock-epoch-based redemption
   - CHANGELOG.md entry added
+
+## Issue #645: timelock approvals require a registered signer
+
+- [x] `approve_queued_transaction` rejects unregistered addresses with `Error::UnknownSigner` before writing, with stranger- and signer-approval coverage (#645)

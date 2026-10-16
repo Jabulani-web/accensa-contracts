@@ -162,9 +162,25 @@ pub fn cancel_queued_transaction(env: &Env, queue_id: u64, caller: &Address) -> 
 /// again.
 ///
 /// Returns `Ok(())` if the approval was recorded.
+/// Returns `Err(Error::UnknownSigner)` if `signer` is not a registered signer
+/// of this account, which is checked before anything is read or written.
 /// Returns `Err(Error::AlreadyVoted)` if the signer still holds a fresh
 /// approval.
 pub fn approve_queued_transaction(env: &Env, queue_id: u64, signer: &Address) -> Result<(), Error> {
+    // Only a registered signer may move a queue toward execution
+    // (issue #645): `execute_queued_transaction` counts `approval_count`
+    // against `required_approvals`, so an unregistered address must be turned
+    // away here, before it can append to `approvers`, rather than left to a
+    // future entry point. Mirrors the registration lookup the cancel path
+    // already performs.
+    let is_signer = env
+        .storage()
+        .persistent()
+        .has(&DataKey::Signer(signer.clone()));
+    if !is_signer {
+        return Err(Error::UnknownSigner);
+    }
+
     let mut queued = get_queued_transaction(env, queue_id)?;
 
     // Expired approvals never count, so they must not block a fresh vote.
@@ -296,10 +312,29 @@ mod tests {
     fn test_approve_and_execute() {
         let (env, id, signer) = setup();
         let guardian = Address::generate(&env);
+        let stranger = Address::generate(&env);
 
         let queue_id = env.as_contract(&id, || {
             let queue_id = queue_transaction(&env, hash(&env), 10, 1, guardian);
+
+            // A stranger's approval is refused before anything is written
+            // (issue #645): neither the approval record nor the queue entry
+            // may move.
+            assert_eq!(
+                approve_queued_transaction(&env, queue_id, &stranger),
+                Err(Error::UnknownSigner)
+            );
+            let queued = get_queued_transaction(&env, queue_id).unwrap();
+            assert_eq!(queued.approval_count, 0);
+            assert!(queued.approvers.is_empty());
+
+            // A registered signer's approval still lands and reaches the
+            // threshold on its own.
             approve_queued_transaction(&env, queue_id, &signer).unwrap();
+            let queued = get_queued_transaction(&env, queue_id).unwrap();
+            assert_eq!(queued.approval_count, queued.required_approvals);
+            assert_eq!(queued.approval_count, 1);
+
             assert_eq!(
                 approve_queued_transaction(&env, queue_id, &signer),
                 Err(Error::AlreadyVoted)
