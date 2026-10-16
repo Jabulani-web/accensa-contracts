@@ -7,3 +7,7 @@
   - 1:1 mint/burn of stACC against locked underlying tokens
   - Exchange rate progression and lock-epoch-based redemption
   - CHANGELOG.md entry added
+
+## Issue #694: typed error for a missing token key in settle
+
+- [x] `settle` reports a missing `DataKey::Token` as `Error::NotInitialized` instead of aborting the host call (#694)

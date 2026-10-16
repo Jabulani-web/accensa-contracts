@@ -394,7 +394,15 @@ impl UptoAuthorization {
         }
 
         // Transfer tokens directly from buyer to seller.
-        let token_addr: Address = env.storage().instance().get(&DataKey::Token).unwrap();
+        //
+        // A missing token key means `initialize` never completed: report the
+        // missing state as a typed error instead of aborting the host call
+        // (issue #694).
+        let token_addr: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Token)
+            .ok_or(Error::NotInitialized)?;
         let token_client = token::Client::new(&env, &token_addr);
         token_client.transfer_from(
             &env.current_contract_address(), // spender = this contract
