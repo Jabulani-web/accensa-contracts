@@ -888,6 +888,16 @@ proof)` for randomness-verification flows, and its cost is pinned by a
   37,376 → 56,320 bytes; `receipt_anchor.wasm` 24,576 → 33,792 bytes on the
   current toolchain).
 
+- **Two dead files removed.** `contracts/upgrade-proxy/tests/upgrade.rs` was an
+  empty stub (`pub fn test_upgrade() {}`, not even a `#[test]`) in a directory
+  with no `Cargo.toml`: not a workspace member, referenced nowhere, never
+  compiled — and pointless now that ADR-003 records immutability (no upgrade
+  path) as a deliberate decision. `contracts/refund-vault/src/test/test/refund_vectors.rs`
+  was a byte-identical copy of `src/refund_vectors.rs` stranded in a nested
+  `src/test/test/` directory no `mod` resolves (`#[path = "refund_vectors.rs"]`
+  in `test.rs` loads `src/refund_vectors.rs`), so any edit to the copy would
+  have silently never run.
+
 ## [0.3.0] — 2026-08-26
 
 ### ⚠️ Breaking
