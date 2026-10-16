@@ -189,7 +189,7 @@ impl UptoAuthorization {
                 .storage()
                 .persistent()
                 .get(&DataKey::Authorization(payment_id.clone()))
-                .unwrap();
+                .ok_or(Error::AuthorizationNotFound)?;
             if existing.expiry > env.ledger().sequence() && !existing.consumed {
                 return Err(Error::AlreadySettled);
             }

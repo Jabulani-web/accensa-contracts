@@ -7,3 +7,7 @@
   - 1:1 mint/burn of stACC against locked underlying tokens
   - Exchange rate progression and lock-epoch-based redemption
   - CHANGELOG.md entry added
+
+## Issue #693: typed missing-state error in authorize_with_slippage
+
+- [x] `authorize_with_slippage` reports a missing authorization record as `Error::AuthorizationNotFound` instead of unwrapping, and a pre-init call yields `Error::NotInitialized` (#693)
