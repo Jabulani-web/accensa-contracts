@@ -7,3 +7,7 @@
   - 1:1 mint/burn of stACC against locked underlying tokens
   - Exchange rate progression and lock-epoch-based redemption
   - CHANGELOG.md entry added
+
+## Issue #647: unit tests for the vesting curve model
+
+- [x] `contracts/treasury/src/vesting.rs` gains an inline `#[cfg(test)]` module pinning the cliff boundaries, mid-window floor rounding, `claimable` saturation and the two `MathOverflow` returns (#647)
