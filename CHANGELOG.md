@@ -874,6 +874,16 @@ proof)` for randomness-verification flows, and its cost is pinned by a
   `test_deposit_from_non_merchant_fails` pins the behaviour and is annotated as
   deliberate.
 
+- **`receipt-anchor`: `prune_batches` now requires merchant auth.** The entry
+  point read the prune cursor without ever checking the admin address, so any
+  caller could delete a shard's anchored receipt history simply by passing a
+  large `before_ledger`. That contradicted AUDIT §I-10, `docs/SECURITY_MODEL.md`
+  and the README's "Merchant auth required" note (and made
+  `prune_batches_succeeds_under_multisig_admin` pass vacuously). It now loads
+  `Admin` from instance storage and calls `require_auth()` before touching any
+  state, mirroring `anchor_batch`; pinned by the new
+  `test_prune_batches_requires_merchant_auth`.
+
 ### Fixed
 
 - **`main` was failing CI** (left red by the advanced-wasm-memory merge):

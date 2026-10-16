@@ -181,6 +181,25 @@ fn test_anchor_batch_requires_merchant_auth() {
 }
 
 #[test]
+#[should_panic]
+fn test_prune_batches_requires_merchant_auth() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(ReceiptAnchor, ());
+    let client = ReceiptAnchorClient::new(&env, &contract_id);
+
+    let merchant = Address::generate(&env);
+    init(&env, &client, &merchant);
+
+    // The caller picks the deletion boundary (`before_ledger`), so pruning is
+    // merchant-gated: with no auth entries the host must abort before any
+    // storage is touched.
+    env.set_auths(&[]);
+    client.prune_batches(&DEFAULT_SHARD, &1_000_000);
+}
+
+#[test]
 fn test_verify_receipt_single_leaf_tree() {
     let (env, client, merchant) = setup();
     init(&env, &client, &merchant);

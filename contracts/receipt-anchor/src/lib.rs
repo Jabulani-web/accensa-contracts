@@ -1033,7 +1033,18 @@ impl ReceiptAnchor {
 
     /// Prunes `shard_id`'s batches anchored prior to `before_ledger`. Each
     /// logical shard prunes independently against its own cursor.
+    ///
+    /// Merchant auth required (see AUDIT §I-10): the caller supplies
+    /// `before_ledger`, so without this gate any address could delete the
+    /// merchant's anchored receipt history at will.
     pub fn prune_batches(env: Env, shard_id: u64, before_ledger: u32) -> Result<u64, Error> {
+        let merchant: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(Error::NotInitialized)?;
+        merchant.require_auth();
+
         let mut pruned_count: u64 = 0;
         let mut cursor: u64 = env
             .storage()
