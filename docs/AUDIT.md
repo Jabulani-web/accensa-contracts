@@ -61,7 +61,7 @@ only insofar as they must mirror stored state (see invariant [I-13](#i-13-events
 - **Off-chain components in `accensa-app`** (indexer, dashboard, SDK,
   middleware). Out of scope as code, but the Merkle convention they share with
   `ReceiptAnchor` is auditable via the pinned parity vectors — see
-  [§6 Prior work](#6-prior-work).
+  [§6 Prior work](#6-prior-work-the-auditor-can-build-on).
 - **Merchant key custody and private-key management.** An accepted operational
   risk, stated in [§5](#5-known-issues-and-accepted-risks).
 - **The multi-sig design (issue #23).** The `Admins` / `Threshold` storage keys
@@ -101,7 +101,7 @@ Drawn as of `main`. Who is trusted, and to do what:
 |---|---|---|---|
 | **Merchant admin** (one `Address` per contract) | Everything the contracts allow: anchor/prune, deposit/refund/withdraw, pause/unpause, set policy (window, ratios, strategy), deploy/withdraw/harvest yield, two-step admin handover. Fully trusted *within the contract's rules*. | Change code (contracts are immutable), rewrite anchored history, refund the same `payment_ref` twice, move float outside the vault's accounting. | A compromised admin key = total float loss. Stated plainly in [§5](#5-known-issues-and-accepted-risks). |
 | **Multi-sig set** (`Admins`/`Threshold` keys) | Nothing. The keys are reserved for issue #23 and are inert today. | — | Must not be treated as an existing control. |
-| **Public TTL-extenders** (anyone) | Nothing. `extend_batch_ttl` / `extend_refund_ttl` are deliberately permissionless so anyone can keep records alive. | Mutating anything except TTL. Extension cannot create/delete records, cannot shorten TTL, and errors on unknown refs. | Griefing cost analysed in [I-11](#i-11-ttl-extension-is-public-and-cannot-grief). |
+| **Public TTL-extenders** (anyone) | Nothing. `extend_batch_ttl` / `extend_refund_ttl` are deliberately permissionless so anyone can keep records alive. | Mutating anything except TTL. Extension cannot create/delete records, cannot shorten TTL, and errors on unknown refs. | Griefing cost analysed in [I-11](#i-11-ttl-extension-is-public-and-cannot-be-used-to-grief). |
 | **Token contract (SAC)** | Correct SEP-41 behaviour: honest `balance`, honest `transfer`, trustline enforcement. | — | A broken/malicious token breaks the vault's float accounting. Accepted platform trust. |
 | **Indexer (off-chain)** | Batching receipts correctly and anchoring the right root. | Forging a receipt: `verify_receipt` is on-chain and permissionless, so a compromised indexer cannot fake a proof without a SHA-256 collision. | |
 | **Anyone verifying receipts** | Nothing. `verify_receipt` is read-only and free. | — | |

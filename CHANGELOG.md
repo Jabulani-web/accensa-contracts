@@ -888,6 +888,17 @@ proof)` for randomness-verification flows, and its cost is pinned by a
   37,376 → 56,320 bytes; `receipt_anchor.wasm` 24,576 → 33,792 bytes on the
   current toolchain).
 
+- **Dead links across the docs** (7 total): README pointed at
+  `contracts/refund-vault/src/vdf.rs` (the verifier lives in
+  `contracts/refund-policy-vdf/src/vdf.rs`), at the `#refund-vault` heading
+  (the anchor is `#refundvault`), and twice at a
+  `DEPLOYMENTS.md#verifying-the-live-deployment-yourself` heading that was
+  renamed to `...-live-testnet-...`; `docs/RFP-EVIDENCE-MAP.md` linked
+  `deploy.sh` without the `../` and carried the same stale DEPLOYMENTS anchor;
+  `docs/AUDIT.md` linked `#6-prior-work` (now
+  `#6-prior-work-the-auditor-can-build-on`) and an I-11 anchor that dropped
+  "be-used-to". A repo-wide link/anchor checker now reports zero broken links.
+
 ## [0.3.0] — 2026-08-26
 
 ### ⚠️ Breaking

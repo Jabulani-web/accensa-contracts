@@ -141,7 +141,7 @@ Proofs use **sorted-pair SHA-256**: siblings are concatenated smaller-hash-first
 proofs carry no left/right position flags. The TypeScript SDK in
 [`accensa-app`](https://github.com/accensa/accensa-app) implements the identical
 convention, and both are checked against the same anchored batch on testnet — see
-[DEPLOYMENTS.md](DEPLOYMENTS.md#verifying-the-live-deployment-yourself).
+[DEPLOYMENTS.md](DEPLOYMENTS.md#verifying-the-live-testnet-deployment-yourself).
 
 ### `RefundVault`
 
@@ -210,7 +210,7 @@ promotes the merchant and emits `MerchantTierPromoted`.
 The fee in force for a claim is resolved once at the start of the entry point
 and shared across a batch, so a rung crossed by claim *N* applies from claim
 *N + 1* on — never retroactively within the same call. Without a ladder the flat
-[`set_fee_bps`](#refund-vault) rate applies exactly as before, and the tier
+[`set_fee_bps`](#refundvault) rate applies exactly as before, and the tier
 bookkeeping costs nothing beyond one cached instance-storage read. An invalid
 ladder is rejected with `Error::InvalidTierLadder` (325).
 
@@ -250,7 +250,7 @@ would not fit if each emitted its own event. The token contract's per-refund
 
 **VDF Fairness** — policies can carry a Verifiable Delay Function delay
 (`propose_policy(..., vdf_delay)`). When configured, finalizing a refund
-requires a valid [Wesolowski VDF proof](contracts/refund-vault/src/vdf.rs)
+requires a valid [Wesolowski VDF proof](contracts/refund-policy-vdf/src/vdf.rs)
 that `vdf_delay` sequential squarings have genuinely elapsed. The delay is
 *computational*: unlike the ledger window or wall-clock deadline, a validator
 that controls block timestamps or transaction ordering cannot shorten it, and
@@ -490,7 +490,7 @@ vary.  Setting `0` disables the window entirely (no expiry).
 
 Batch #1 is anchored and live. You can verify a receipt against it — and watch a
 forged receipt get rejected — with two read-only commands that cost nothing:
-see [DEPLOYMENTS.md](DEPLOYMENTS.md#verifying-the-live-deployment-yourself).
+see [DEPLOYMENTS.md](DEPLOYMENTS.md#verifying-the-live-testnet-deployment-yourself).
 
 ## Getting Started
 
