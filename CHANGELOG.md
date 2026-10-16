@@ -888,6 +888,16 @@ proof)` for randomness-verification flows, and its cost is pinned by a
   37,376 → 56,320 bytes; `receipt_anchor.wasm` 24,576 → 33,792 bytes on the
   current toolchain).
 
+- **README invariant → test map was stale** (docs + tests): nine of its mapped
+  test functions no longer existed anywhere in the workspace, "No double
+  refunds" still described the retired single-refund `AlreadyRefunded` rule
+  instead of the cumulative `ExceedsPayment` ceiling plus per-user nonce, and
+  the "only economical on Stellar" x402 rationale had been orphaned inside the
+  invariants section (it rendered as part of the Pausable bullet). Every mapping
+  now names a test that exists, and the two merchant-only tests the README had
+  claimed were restored: `test_deposit_from_non_merchant_fails` and the new
+  `test_refund_requires_merchant_auth` in `contracts/refund-vault/src/test.rs`.
+
 ## [0.3.0] — 2026-08-26
 
 ### ⚠️ Breaking

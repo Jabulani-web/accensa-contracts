@@ -40,20 +40,6 @@ Accensa bridges x402 to Stellar via two Soroban smart contracts:
 1. **ReceiptAnchor** — Merchants batch and anchor payment receipt roots on-chain using Merkle trees, giving agents verifiable proof of payment that survives server loss.
 2. **RefundVault** — A policy-bounded vault holding merchant float for automated refunds, restricted by time windows, balance limits, and merchant authorization.
 
-## Enforced Invariants & Test Coverage Mapping
-
-Enforced invariants, each covered by a test:
-
-- **No double refunds** — a `payment_ref` can only be refunded once (`AlreadyRefunded`).
-  *Mapped Test:* `contracts/refund-vault/src/test.rs` -> `test_double_refund_same_payment_ref_fails`
-- **Time-bounded** — refunds past `refund_window_ledgers` are rejected (`WindowExpired`).
-  *Mapped Test:* `contracts/refund-vault/src/test.rs` -> `test_refund_outside_window_fails`, `test_refund_at_window_boundary_succeeds`
-- **Float-bounded** — a refund can never exceed vault balance (`InsufficientFloat`).
-  *Mapped Test:* `contracts/refund-vault/src/test.rs` -> `test_refund_exceeding_float_fails`, `test_withdraw_exceeding_float_fails`
-- **Merchant-only** — every state-changing call requires merchant/admin auth (`Unauthorized`), with the explicit exception of `initialize` (which initializes the contract instance and does not require prior auth, see #145).
-  *Mapped Tests:* `contracts/refund-vault/src/test.rs` -> `test_refund_requires_merchant_auth`, `test_deposit_from_non_merchant_fails`, `test_pause_requires_merchant_auth`, `test_unpause_requires_merchant_auth`, `test_transfer_admin_requires_auth`, `test_cancel_admin_transfer_requires_auth`, `test_accept_admin_requires_pending_auth`; `contracts/receipt-anchor/src/test.rs` -> `test_anchor_batch_requires_merchant_auth`, `test_prune_batches_requires_admin_auth`
-- **Pausable** — operations are halted if the vault is paused (`Paused`).
-  *Mapped Test:* `contracts/refund-vault/src/test.rs` -> `test_refund_when_paused_fails`, `test_deposit_when_paused_fails`, `test_withdraw_when_paused_fails`
 This design is only economical on Stellar:
 
 - **Sub-cent fees make per-request payments viable at all.** x402 is about
@@ -64,6 +50,23 @@ This design is only economical on Stellar:
   actually price in, through the Stellar Asset Contract, with no bridge.
 - **Soroban's fee model is predictable**, so a merchant can bound the cost of their
   refund policy in advance rather than guessing at gas.
+
+## Enforced Invariants & Test Coverage Mapping
+
+Enforced invariants, each covered by a test:
+
+- **No double refunds** — refunds against a `payment_ref` are cumulative and can
+  never exceed the original `payment_amount` (`ExceedsPayment`), and the per-user
+  nonce (issue #122) rejects a replayed claim.
+  *Mapped Tests:* `contracts/refund-vault/src/test.rs` -> `test_partial_refunds_cumulative_within_ceiling`, `test_user_nonce_sequential_refunds_advance_and_reuse_reverts`; `contracts/refund-vault/tests/integration_test.rs` -> `test_full_refund_then_exceed_payment`; `contracts/refund-vault/src/fuzz_test.rs` -> `test_fuzz_refund_ceiling_respected`
+- **Time-bounded** — refunds past `refund_window_ledgers` are rejected (`WindowExpired`).
+  *Mapped Tests:* `contracts/refund-vault/src/test.rs` -> `test_refund_outside_window_fails`, `test_deadline_and_window_are_independent_bounds`, `test_refund_at_deadline_boundary_succeeds`
+- **Float-bounded** — a refund can never exceed vault balance (`InsufficientFloat`).
+  *Mapped Tests:* `contracts/refund-vault/src/test.rs` -> `test_refund_exceeding_float_fails`, `test_claim_batch_float_checked_per_item`; `contracts/refund-vault/src/token_agnostic_tests.rs` -> `test_float_bound_check_with_non_7_decimal_token`
+- **Merchant-only** — every state-changing call requires merchant/admin auth (`Unauthorized`), with the explicit exception of `initialize` (which initializes the contract instance and does not require prior auth, see #145).
+  *Mapped Tests:* `contracts/refund-vault/src/test.rs` -> `test_refund_requires_merchant_auth`, `test_deposit_from_non_merchant_fails`, `test_pause_requires_merchant_auth`, `test_unpause_requires_merchant_auth`, `test_transfer_admin_requires_auth`, `test_cancel_admin_transfer_requires_auth`, `test_accept_admin_requires_pending_auth`, `test_set_fee_config_requires_admin_auth`; `contracts/receipt-anchor/src/test.rs` -> `test_anchor_batch_requires_merchant_auth`, `test_set_anchor_rate_limit_requires_admin_auth`
+- **Pausable** — operations are halted if the vault is paused (`Paused`).
+  *Mapped Tests:* `contracts/refund-vault/src/test.rs` -> `test_paused_state_blocks_and_preserves_every_operation`, `test_claim_batch_when_paused_fails`; `contracts/refund-vault/src/fuzz_test.rs` -> `test_regression_pause_blocks_and_preserves_state`
 
 ## Contracts
 

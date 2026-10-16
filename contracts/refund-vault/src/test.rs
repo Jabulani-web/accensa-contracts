@@ -390,6 +390,33 @@ fn test_refund_invalid_amount_fails() {
     );
 }
 
+// ── Merchant-only funding (issue #157) ───────────────────────────────────
+
+#[test]
+fn test_deposit_from_non_merchant_fails() {
+    let (env, client, _merchant, _token) = setup(100);
+    // `deposit` takes its payer as an argument, so the guard is `from != Admin`:
+    // a stranger's address is rejected with `Unauthorized` before any auth runs.
+    let stranger = Address::generate(&env);
+    assert_eq!(
+        client.try_deposit(&stranger, &100_000, &None),
+        Err(Ok(Error::Unauthorized))
+    );
+}
+
+#[test]
+#[should_panic]
+fn test_refund_requires_merchant_auth() {
+    let (env, client, merchant, _token) = setup(100);
+    client.deposit(&merchant, &500_000, &None);
+
+    let payment_ref = BytesN::from_array(&env, &[7u8; 32]);
+    let buyer = Address::generate(&env);
+    // Refunds move float, so `merchant.require_auth()` must abort the call.
+    env.set_auths(&[]);
+    client.refund(&payment_ref, &buyer, &120_000, &0, &120_000, &None, &0);
+}
+
 #[test]
 fn test_claim_cooldown_enforced_per_recipient() {
     let (env, client, merchant, _token) = setup(100);
